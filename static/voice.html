@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>語音對話展示</title>
+    <link rel="stylesheet" href="/assets/feature-pages.css" />
+  </head>
+  <body>
+    <div class="feature-shell">
+      <header class="feature-hero">
+        <div>
+          <a class="back-link" href="/">回到首頁</a>
+          <p class="eyebrow">VOICE ASSISTANT DEMO</p>
+          <h1>語音對話展示</h1>
+          <p class="lead">
+            這一頁提供兩種互動方式：一種是語音對話，一種是聲音場景識別。語音對話會把你的說話轉成文字後交給
+            Gemma 回答；場景識別則會錄一段環境聲音，讓 Gemma 判斷像是嬰兒哭聲、滴水、強風或撞擊等事件。
+          </p>
+        </div>
+        <div class="status-grid">
+          <div class="status-card">
+            <span>服務狀態</span>
+            <strong id="serverStatus">檢查中</strong>
+          </div>
+          <div class="status-card">
+            <span>GPU</span>
+            <strong id="gpuStatus">檢查中</strong>
+          </div>
+          <div class="status-card">
+            <span>麥克風狀態</span>
+            <strong id="micStatus">未啟動</strong>
+          </div>
+          <div class="status-card">
+            <span>目前已載模型</span>
+            <strong id="currentModelLabel">未載入</strong>
+          </div>
+        </div>
+      </header>
+
+      <main class="feature-grid">
+        <section class="feature-panel main-panel">
+          <div class="panel-head">
+            <div>
+              <p class="section-kicker">Live Dialogue</p>
+              <h2>語音對話</h2>
+            </div>
+            <div class="action-row">
+              <button id="startMic" class="primary">開始說話</button>
+              <button id="stopMic" class="ghost">停止說話</button>
+              <button id="stopOutput" class="ghost">停止輸出</button>
+              <button id="clearChat" class="ghost">清空對話</button>
+            </div>
+          </div>
+
+          <div class="featured-card">
+            <p class="panel-label">最新回覆</p>
+            <div id="featuredResponse" class="featured-response">
+              這裡會顯示 Gemma 最新一段回覆，方便你在展示時快速看目前回答的重點。
+            </div>
+          </div>
+
+          <div class="runtime-card voice-runtime-card">
+            <div class="runtime-row">
+              <span>操作提示</span>
+              <strong>支援空白鍵按住說話，放開後自動送出</strong>
+            </div>
+            <div id="voiceHint" class="runtime-status">
+              建議使用 Chrome 或 Edge。若要做順暢展示，可先在首頁載入 e4b 或 e4b-nvfp4a16，再回到這裡開始互動。
+            </div>
+          </div>
+
+          <div class="stack-card">
+            <div class="panel-head">
+              <h3>即時逐字稿</h3>
+            </div>
+            <div id="liveTranscript" class="result-box">
+              麥克風開始收音後，這裡會即時顯示辨識中的文字。
+            </div>
+          </div>
+
+          <div class="stack-card">
+            <div class="panel-head">
+              <div>
+                <p class="section-kicker">Audio Scene Recognition</p>
+                <h3>聲音場景識別</h3>
+              </div>
+              <div class="action-row">
+                <button id="startSceneAudio" class="primary">開始收音</button>
+                <button id="stopSceneAudio" class="ghost">停止並辨識</button>
+                <button id="playSceneAudio" class="ghost">播放錄音</button>
+              </div>
+            </div>
+            <div class="runtime-card">
+              <div class="runtime-row">
+                <span>收音狀態</span>
+                <strong id="sceneAudioStatus">待機中</strong>
+              </div>
+              <div class="runtime-status">
+                建議錄 2 到 6 秒的環境聲音。像是嬰兒哭聲、強風、滴水、撞擊、警報聲、狗叫、雨聲或施工聲，都很適合用來測試。
+              </div>
+            </div>
+            <div class="result-card">
+              <p class="panel-label">場景識別結果</p>
+              <div id="sceneResult" class="result-box">
+                按下「開始收音」後錄一段環境聲音，再按「停止並辨識」，Gemma 就會開始判斷這段聲音代表的場景。
+              </div>
+            </div>
+            <audio id="sceneAudioPlayer" controls hidden></audio>
+          </div>
+
+          <div class="thinking-strip" id="thinkingStatus">等待互動</div>
+
+          <div id="chatLog" class="chat-log"></div>
+
+          <form id="chatForm" class="chat-form">
+            <textarea
+              id="chatInput"
+              rows="4"
+              placeholder="也可以直接輸入文字，讓 Gemma 回答"
+            ></textarea>
+            <button type="submit" class="primary">送出文字</button>
+          </form>
+        </section>
+
+        <aside class="feature-panel side-panel">
+          <section class="stack-card">
+            <div class="panel-head">
+              <h3>快捷題目</h3>
+            </div>
+            <div class="preset-list">
+              <button class="preset" data-prompt="請先自我介紹，並說明你現在能做哪些事情。">
+                自我介紹
+              </button>
+              <button class="preset" data-prompt="請用台灣使用者容易理解的方式介紹 Jetson Thor。">
+                Jetson Thor 介紹
+              </button>
+              <button class="preset" data-prompt="請舉出三個邊緣 AI 在商業場景的實際應用。">
+                邊緣 AI 應用
+              </button>
+              <button
+                class="preset"
+                id="scenePromptPreset"
+                data-prompt="請分析這段音訊的主要內容。請用繁體中文回答：1. 這是什麼類型的聲音 2. 可能的場景 3. 若有多種聲音，請列出主要聲音 回答請簡潔。"
+              >
+                聲音場景識別提示
+              </button>
+            </div>
+          </section>
+
+          <section class="stack-card">
+            <div class="panel-head">
+              <h3>回覆設定</h3>
+            </div>
+            <label for="chatMaxTokens">最大輸出 tokens</label>
+            <select id="chatMaxTokens">
+              <option value="128">128</option>
+              <option value="192">192</option>
+              <option value="384" selected>384</option>
+              <option value="512">512</option>
+              <option value="768">768</option>
+            </select>
+            <label for="speechRate">語音播放速度</label>
+            <select id="speechRate">
+              <option value="0.9">0.9x</option>
+              <option value="1" selected>1.0x</option>
+              <option value="1.1">1.1x</option>
+              <option value="1.2">1.2x</option>
+            </select>
+          </section>
+
+          <section class="stack-card">
+            <div class="panel-head">
+              <h3>系統資訊</h3>
+            </div>
+            <div id="health" class="health-box">檢查中...</div>
+          </section>
+        </aside>
+      </main>
+      <script src="/assets/voice.js"></script>
+    </div>
+  </body>
+</html>

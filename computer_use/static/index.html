@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Computer Use Prototype</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="panel preview-panel">
+        <div class="toolbar">
+          <h1>Computer Use Prototype</h1>
+          <button id="refresh" type="button">更新截圖</button>
+        </div>
+        <img id="screenshot" alt="Latest screenshot" />
+      </section>
+
+      <aside class="panel controls">
+        <h2>控制</h2>
+        <div class="position" id="position">x: -, y: -</div>
+
+        <label>
+          X
+          <input id="x" type="number" value="100" />
+        </label>
+        <label>
+          Y
+          <input id="y" type="number" value="100" />
+        </label>
+
+        <div class="grid">
+          <button data-action="move" type="button">移動</button>
+          <button data-action="click" type="button">點擊</button>
+          <button data-action="double_click" type="button">雙擊</button>
+          <button data-action="screenshot" type="button">截圖</button>
+        </div>
+
+        <label>
+          輸入文字
+          <input id="text" type="text" autocomplete="off" />
+        </label>
+        <button id="type" type="button">輸入</button>
+
+        <label>
+          快捷鍵，例如 ctrl,l
+          <input id="keys" type="text" value="ctrl,l" />
+        </label>
+        <button id="hotkey" type="button">送出快捷鍵</button>
+
+        <label class="check">
+          <input id="dryRun" type="checkbox" checked />
+          只記錄，不真的執行
+        </label>
+
+        <h2>紀錄</h2>
+        <pre id="log"></pre>
+      </aside>
+    </main>
+    <script src="/static/app.js"></script>
+  </body>
+</html>
+

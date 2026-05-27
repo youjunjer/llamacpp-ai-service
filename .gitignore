@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual environments / local tooling
+.venv/
+.venv-*/
+.cache/
+.playwright-mcp/
+tmp_chrome_profile/
+
+# Large local model assets
+models/
+runtime/
+*.pt
+*.pth
+*.onnx
+*.gguf
+*.safetensors
+*.bin
+*.mp4
+*.mov
+*.avi
+*.mkv
+
+# Local certs and secrets
+certs/
+*.key
+*.crt
+*.pem
+*.env
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+computer_use/logs/
+
+# Generated outputs
+testdata/*_result.json
+testdata/webcam0_retry.jpg
+testdata/yolo_webcam_last.jpg
+testdata/*.mp4
+testdata/*.mov
+testdata/*.avi
+
+# OS/editor
+.DS_Store
+Thumbs.db

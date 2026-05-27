@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>視覺理解展示</title>
+    <link rel="stylesheet" href="/assets/feature-pages.css" />
+  </head>
+  <body>
+    <div class="feature-shell">
+      <header class="feature-hero">
+        <div>
+          <a class="back-link" href="/">回到首頁</a>
+          <p class="eyebrow">VISION UNDERSTANDING DEMO</p>
+          <h1>視覺理解展示</h1>
+          <p class="lead">
+            適合展示文件辨識、路況分析、餐點熱量估算、藥袋內容整理與人流計算。
+            請先回首頁載入 Gemma 模型，再在這裡選擇圖片來源與應用情境。
+          </p>
+        </div>
+        <div class="status-grid">
+          <div class="status-card">
+            <span>服務狀態</span>
+            <strong id="serverStatus">檢查中</strong>
+          </div>
+          <div class="status-card">
+            <span>GPU</span>
+            <strong id="gpuStatus">檢查中</strong>
+          </div>
+          <div class="status-card">
+            <span>鏡頭狀態</span>
+            <strong id="cameraStatus">未啟動</strong>
+          </div>
+          <div class="status-card">
+            <span>目前已載模型</span>
+            <strong id="currentModelStatus">檢查中</strong>
+          </div>
+        </div>
+      </header>
+
+      <main class="feature-grid">
+        <section class="feature-panel main-panel">
+          <div class="panel-head">
+            <div>
+              <p class="section-kicker">Visual Stage</p>
+              <h2>影像與結果</h2>
+            </div>
+            <div class="action-row">
+              <button id="startCamera" class="primary">啟動鏡頭</button>
+              <button id="stopCamera" class="ghost">關閉鏡頭</button>
+              <button id="captureFrame" class="ghost">擷取畫面</button>
+              <button id="runVision" class="ghost">開始理解</button>
+              <button id="startContinuousVision" class="ghost">開始連續辨識</button>
+              <button id="stopContinuousVision" class="ghost">停止連續辨識</button>
+              <button id="stopVisionOutput" class="ghost">停止輸出</button>
+            </div>
+          </div>
+
+          <div class="vision-layout">
+            <div class="media-pane">
+              <video id="webcam" autoplay playsinline muted></video>
+              <canvas id="captureCanvas" hidden></canvas>
+              <div id="cameraOverlay" class="overlay">請先啟動鏡頭，或直接貼上圖片網址。</div>
+            </div>
+            <div class="media-pane still-pane">
+              <img id="capturedImage" alt="分析圖片預覽" />
+            </div>
+          </div>
+
+          <div class="thinking-strip" id="thinkingStatus">等待分析</div>
+
+          <div class="result-card">
+            <p class="panel-label">視覺理解結果</p>
+            <div id="visionResult" class="result-box">請先選擇一個案例，或輸入圖片網址後再開始理解。</div>
+          </div>
+        </section>
+
+        <aside class="feature-panel side-panel">
+          <section class="stack-card">
+            <div class="panel-head">
+              <h3>圖片來源與提示語</h3>
+            </div>
+            <label for="visionModel">目前使用首頁載入的 Gemma 模型</label>
+            <select id="visionModel"></select>
+
+            <label for="imageUrl">圖片網址</label>
+            <input id="imageUrl" type="text" placeholder="貼上 https://...jpg 或 https://...png" />
+
+            <label for="visionPrompt">提示語</label>
+            <textarea id="visionPrompt" rows="10">請先選擇一個應用案例，系統會自動帶入提示語。</textarea>
+          </section>
+
+          <section class="stack-card">
+            <div class="panel-head">
+              <h3>應用場景</h3>
+            </div>
+            <div class="preset-list">
+              <button class="preset" data-autostart="true" data-scenario="invoice">發票辨識</button>
+              <button class="preset" data-autostart="true" data-scenario="traffic">道路壅擠程度</button>
+              <button class="preset" data-autostart="true" data-scenario="crowd">人流計算</button>
+              <button class="preset" data-autostart="true" data-scenario="industrialSafety">工業安全</button>
+              <button class="preset" data-autostart="true" data-scenario="officeStatus">辦公狀態</button>
+              <button class="preset" data-autostart="true" data-scenario="medicine">藥袋辨識</button>
+              <button class="preset" data-autostart="true" data-scenario="meal">餐點熱量分析</button>
+              <button class="preset" data-autostart="true" data-scenario="businessCard">名片資訊整理</button>
+              <button class="preset" data-autostart="true" data-scenario="poster">海報內容摘要</button>
+            </div>
+          </section>
+
+          <section class="stack-card">
+            <div class="panel-head">
+              <h3>系統狀態</h3>
+            </div>
+            <div id="health" class="health-box">檢查中...</div>
+          </section>
+        </aside>
+      </main>
+      <script src="/assets/vision-page.js"></script>
+    </div>
+  </body>
+</html>

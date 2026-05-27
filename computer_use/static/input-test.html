@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Input Test</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #101418;
+        color: #eef2f6;
+        font-family: "Segoe UI", system-ui, sans-serif;
+      }
+
+      main {
+        width: min(720px, calc(100vw - 32px));
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 220px;
+        border: 1px solid #52606d;
+        border-radius: 8px;
+        background: #171d23;
+        color: #f7fafc;
+        font: 28px/1.5 "Segoe UI", system-ui, sans-serif;
+        padding: 16px;
+      }
+
+      output {
+        display: block;
+        min-height: 40px;
+        margin-top: 12px;
+        color: #b8c3cc;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <textarea id="target" autofocus aria-label="Input target"></textarea>
+      <output id="value"></output>
+    </main>
+    <script>
+      const target = document.querySelector("#target");
+      const value = document.querySelector("#value");
+
+      async function sync() {
+        value.textContent = target.value;
+        await fetch("/api/input-test-value", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ value: target.value }),
+        });
+      }
+
+      target.addEventListener("input", sync);
+      target.focus();
+      sync();
+    </script>
+  </body>
+</html>
