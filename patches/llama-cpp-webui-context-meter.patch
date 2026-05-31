@@ -1,0 +1,147 @@
+﻿diff --git a/tools/server/webui/src/lib/components/app/chat/ChatMessages/ChatMessage/ChatMessageAssistant/ChatMessageAssistant.svelte b/tools/server/webui/src/lib/components/app/chat/ChatMessages/ChatMessage/ChatMessageAssistant/ChatMessageAssistant.svelte
+index 2fb6066..8409c5c 100644
+--- a/tools/server/webui/src/lib/components/app/chat/ChatMessages/ChatMessage/ChatMessageAssistant/ChatMessageAssistant.svelte
++++ b/tools/server/webui/src/lib/components/app/chat/ChatMessages/ChatMessage/ChatMessageAssistant/ChatMessageAssistant.svelte
+@@ -180,6 +180,9 @@
+ 	);
+ 
+ 	let displayedModel = $derived(message.model ?? null);
++	let displayedModelContextSize = $derived(
++		displayedModel ? modelsStore.getModelContextSize(displayedModel) : null
++	);
+ 
+ 	let isCurrentlyLoading = $derived(isLoading());
+ 	let isStreaming = $derived(isChatStreaming());
+@@ -291,6 +294,7 @@
+ 					<ChatMessageStatistics
+ 						promptTokens={agentic ? agentic.llm.prompt_n : message.timings.prompt_n}
+ 						promptMs={agentic ? agentic.llm.prompt_ms : message.timings.prompt_ms}
++						contextSize={displayedModelContextSize}
+ 						predictedTokens={agentic ? agentic.llm.predicted_n : message.timings.predicted_n}
+ 						predictedMs={agentic ? agentic.llm.predicted_ms : message.timings.predicted_ms}
+ 						agenticTimings={agentic}
+@@ -309,6 +313,7 @@
+ 							isProcessingPrompt={!!isStillProcessingPrompt}
+ 							promptTokens={liveStats?.tokensProcessed}
+ 							promptMs={liveStats?.timeMs}
++							contextSize={displayedModelContextSize}
+ 							predictedTokens={genStats?.tokensGenerated}
+ 							predictedMs={genStats?.timeMs}
+ 						/>
+diff --git a/tools/server/webui/src/lib/components/app/chat/ChatMessages/ChatMessageStatistics/ChatMessageStatistics.svelte b/tools/server/webui/src/lib/components/app/chat/ChatMessages/ChatMessageStatistics/ChatMessageStatistics.svelte
+index 34362e0..42e0f1a 100644
+--- a/tools/server/webui/src/lib/components/app/chat/ChatMessages/ChatMessageStatistics/ChatMessageStatistics.svelte
++++ b/tools/server/webui/src/lib/components/app/chat/ChatMessages/ChatMessageStatistics/ChatMessageStatistics.svelte
+@@ -12,6 +12,7 @@
+ 		predictedMs?: number;
+ 		promptTokens?: number;
+ 		promptMs?: number;
++		contextSize?: number | null;
+ 		isLive?: boolean;
+ 		isProcessingPrompt?: boolean;
+ 		initialView?: ChatMessageStatsView;
+@@ -25,6 +26,7 @@
+ 		predictedMs,
+ 		promptTokens,
+ 		promptMs,
++		contextSize = null,
+ 		isLive = false,
+ 		isProcessingPrompt = false,
+ 		initialView = ChatMessageStatsView.GENERATION,
+@@ -83,6 +85,15 @@
+ 		promptMs !== undefined ? formatPerformanceTime(promptMs) : undefined
+ 	);
+ 
++	let contextUsageValue = $derived.by(() => {
++		if (promptTokens === undefined) return null;
++
++		const used = promptTokens.toLocaleString();
++		const total = contextSize && contextSize > 0 ? ` / ${contextSize.toLocaleString()}` : '';
++
++		return `${used}${total} ctx`;
++	});
++
+ 	let hasPromptStats = $derived(
+ 		promptTokens !== undefined &&
+ 			promptMs !== undefined &&
+@@ -222,6 +233,15 @@
+ 				tooltipLabel="Generated tokens"
+ 			/>
+ 
++			{#if contextUsageValue}
++				<ChatMessageStatisticsBadge
++					class="bg-transparent"
++					icon={BookOpenText}
++					value={contextUsageValue}
++					tooltipLabel="Conversation context used (prompt / max context)"
++				/>
++			{/if}
++
+ 			<ChatMessageStatisticsBadge
+ 				class="bg-transparent"
+ 				icon={Clock}
+diff --git a/tools/server/webui/src/lib/stores/models.svelte.ts b/tools/server/webui/src/lib/stores/models.svelte.ts
+index aa99b89..7c23de7 100644
+--- a/tools/server/webui/src/lib/stores/models.svelte.ts
++++ b/tools/server/webui/src/lib/stores/models.svelte.ts
+@@ -5,6 +5,8 @@ import { ModelsService } from '$lib/services/models.service';
+ import { PropsService } from '$lib/services/props.service';
+ import { serverStore } from '$lib/stores/server.svelte';
+ import { TTLCache } from '$lib/utils';
++
++export const MODEL_UNLOADED_ID = '__llama_cpp_model_unloaded__';
+ import {
+ 	MODEL_PROPS_CACHE_TTL_MS,
+ 	MODEL_PROPS_CACHE_MAX_ENTRIES,
+@@ -196,7 +198,22 @@ class ModelsStore {
+ 		const props = this.getModelProps(modelId);
+ 		const nCtx = props?.default_generation_settings?.n_ctx;
+ 
+-		return typeof nCtx === 'number' ? nCtx : null;
++		if (typeof nCtx === 'number') return nCtx;
++
++		const routerModel = this.routerModels.find((model) => model.id === modelId);
++		const args = routerModel?.status?.args as string[] | undefined;
++		const ctxArgIndex = args?.findIndex((arg) => arg === '--ctx-size');
++		const ctxFromArgs =
++			ctxArgIndex !== undefined && ctxArgIndex >= 0 ? Number(args?.[ctxArgIndex + 1]) : NaN;
++
++		if (Number.isFinite(ctxFromArgs) && ctxFromArgs > 0) return ctxFromArgs;
++
++		const ctxFromPreset = routerModel?.status?.preset?.match(/(?:^|\n)ctx-size\s*=\s*(\d+)/)?.[1];
++		const parsedCtxFromPreset = ctxFromPreset ? Number(ctxFromPreset) : NaN;
++
++		return Number.isFinite(parsedCtxFromPreset) && parsedCtxFromPreset > 0
++			? parsedCtxFromPreset
++			: null;
+ 	}
+ 
+ 	/**
+@@ -628,6 +645,27 @@ class ModelsStore {
+ 		}
+ 	}
+ 
++	/**
++	 * Unload every loaded model and reset selection to the unloaded state.
++	 */
++	async unloadLoadedModels(): Promise<void> {
++		const loadedIds = this.loadedModelIds;
++		this.clearSelection();
++
++		if (loadedIds.length === 0) {
++			await this.fetchRouterModels();
++			toast.info('Model memory already clear');
++			return;
++		}
++
++		for (const modelId of loadedIds) {
++			await this.unloadModel(modelId);
++		}
++
++		this.clearSelection();
++		await this.fetchRouterModels();
++	}
++
+ 	/**
+ 	 * Ensure a model is loaded before use
+ 	 * @param modelId - Model identifier to ensure is loaded
