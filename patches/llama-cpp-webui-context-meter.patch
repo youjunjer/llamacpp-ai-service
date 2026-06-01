@@ -29,7 +29,7 @@ index 2fb6066..8409c5c 100644
  							predictedMs={genStats?.timeMs}
  						/>
 diff --git a/tools/server/webui/src/lib/components/app/chat/ChatMessages/ChatMessageStatistics/ChatMessageStatistics.svelte b/tools/server/webui/src/lib/components/app/chat/ChatMessages/ChatMessageStatistics/ChatMessageStatistics.svelte
-index 34362e0..42e0f1a 100644
+index 34362e0..936d8b5 100644
 --- a/tools/server/webui/src/lib/components/app/chat/ChatMessages/ChatMessageStatistics/ChatMessageStatistics.svelte
 +++ b/tools/server/webui/src/lib/components/app/chat/ChatMessages/ChatMessageStatistics/ChatMessageStatistics.svelte
 @@ -12,6 +12,7 @@
@@ -48,7 +48,7 @@ index 34362e0..42e0f1a 100644
  		isLive = false,
  		isProcessingPrompt = false,
  		initialView = ChatMessageStatsView.GENERATION,
-@@ -83,6 +85,15 @@
+@@ -83,6 +85,25 @@
  		promptMs !== undefined ? formatPerformanceTime(promptMs) : undefined
  	);
  
@@ -58,13 +58,23 @@ index 34362e0..42e0f1a 100644
 +		const used = promptTokens.toLocaleString();
 +		const total = contextSize && contextSize > 0 ? ` / ${contextSize.toLocaleString()}` : '';
 +
-+		return `${used}${total} ctx`;
++		return `${used}${total} input ctx`;
++	});
++
++	let totalContextUsageValue = $derived.by(() => {
++		if (promptTokens === undefined || predictedTokens === undefined) return null;
++
++		const usedTokens = promptTokens + predictedTokens;
++		const used = usedTokens.toLocaleString();
++		const total = contextSize && contextSize > 0 ? ` / ${contextSize.toLocaleString()}` : '';
++
++		return `${used}${total} total ctx`;
 +	});
 +
  	let hasPromptStats = $derived(
  		promptTokens !== undefined &&
  			promptMs !== undefined &&
-@@ -222,6 +233,15 @@
+@@ -222,6 +243,24 @@
  				tooltipLabel="Generated tokens"
  			/>
  
@@ -73,7 +83,16 @@ index 34362e0..42e0f1a 100644
 +					class="bg-transparent"
 +					icon={BookOpenText}
 +					value={contextUsageValue}
-+					tooltipLabel="Conversation context used (prompt / max context)"
++					tooltipLabel="Input context used before generation (prompt / max context)"
++				/>
++			{/if}
++
++			{#if totalContextUsageValue}
++				<ChatMessageStatisticsBadge
++					class="bg-transparent"
++					icon={Layers}
++					value={totalContextUsageValue}
++					tooltipLabel="Total context used by this turn (prompt + generated / max context)"
 +				/>
 +			{/if}
 +
