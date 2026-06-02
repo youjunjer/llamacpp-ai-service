@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>YOLO WebUI Test Bench</title>
-    <link rel="stylesheet" href="/assets/feature-pages.css?v=20260426d" />
+    <link rel="stylesheet" href="/assets/feature-pages.css?v=20260602g" />
   </head>
   <body>
     <div class="feature-shell yolo-shell">
@@ -14,7 +14,7 @@
           <p class="eyebrow">YOLO Detection Workbench</p>
           <h1>網頁呼叫 YOLO 測試</h1>
           <p class="lead">
-            支援圖片、影片、MPEG 上傳，也能貼上一般媒體網址或 YouTube 連結，直接在網頁預覽原始檔與推論結果。
+            支援圖片、影片、MPEG 上傳，也能貼上一般媒體網址或 YouTube 連結，直接在網頁預覽原始媒體與推論結果。
           </p>
         </div>
         <div class="status-grid">
@@ -91,7 +91,7 @@
               type="text"
               placeholder="https://www.youtube.com/watch?v=..."
             />
-            <p class="input-hint">後端會先抓取影片，再跑 YOLO 推論並輸出標註後影片。</p>
+            <p class="input-hint">會先解析可播放串流，左側顯示預覽後，再開始連續辨識。</p>
           </section>
 
           <div class="preview-toolbar">
@@ -127,7 +127,7 @@
 
           <div class="result-card">
             <p class="panel-label">執行摘要</p>
-            <div id="yoloResult" class="result-box">這裡會顯示模型、FPS、處理時間、幀數與偵測類別摘要。</div>
+            <div id="yoloResult" class="result-box">FPS: -&#10;資料類型: -&#10;模型: -</div>
           </div>
         </section>
 
@@ -162,7 +162,7 @@
           </section>
         </aside>
       </main>
-      <script src="/assets/yolo-page.js?v=20260426d"></script>
+      <script src="/assets/yolo-page.js?v=20260602g"></script>
     </div>
   </body>
 </html>
