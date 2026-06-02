@@ -11,24 +11,24 @@
       <header class="landing-hero">
         <div>
           <p class="eyebrow">JETSON THOR DEMO GUIDE</p>
-          <h1>展示功能總覽</h1>
+          <h1>Gemma 展示首頁</h1>
           <p class="lead">
-            在這裡統一管理 Gemma 模型，再分別進入語音助理、視覺理解與 YOLO 展示頁。
-            模型載入與卸載都從首頁操作，YOLO 則維持獨立運作。
+            這個入口現在專注在 Gemma 與 llama.cpp 的展示流程，包含語音與視覺頁面。
+            YOLO 已獨立拆分到自己的專案與網站，不再從這個 repo 提供。
           </p>
         </div>
         <div class="hero-status">
           <div class="status-card">
             <span>服務狀態</span>
-            <strong id="serverStatus">檢查中</strong>
+            <strong id="serverStatus">載入中</strong>
           </div>
           <div class="status-card">
             <span>GPU</span>
-            <strong id="gpuStatus">檢查中</strong>
+            <strong id="gpuStatus">載入中</strong>
           </div>
           <div class="status-card">
             <span>已載入 Gemma</span>
-            <strong id="loadedModels">檢查中</strong>
+            <strong id="loadedModels">載入中</strong>
           </div>
         </div>
       </header>
@@ -37,11 +37,11 @@
         <a class="page-card featured" href="/voice" target="_blank" rel="noopener noreferrer">
           <p class="card-kicker">Voice</p>
           <h2>語音助理展示</h2>
-          <p>適合展示語音收音、即時問答、語音朗讀與對話互動。</p>
+          <p>測試語音輸入、Gemma 回應與整體語音互動流程。</p>
           <ul>
-            <li>語音轉文字</li>
-            <li>Gemma 對話生成</li>
-            <li>語音朗讀</li>
+            <li>語音輸入流程</li>
+            <li>Gemma 模型切換</li>
+            <li>語音互動展示</li>
           </ul>
           <span class="jump">前往語音展示</span>
         </a>
@@ -49,25 +49,13 @@
         <a class="page-card" href="/vision" target="_blank" rel="noopener noreferrer">
           <p class="card-kicker">Vision</p>
           <h2>視覺理解展示</h2>
-          <p>適合展示文件辨識、場景理解、圖片網址分析與預設案例展示。</p>
+          <p>測試圖片與攝影機畫面送入 Gemma 的多模態理解流程。</p>
           <ul>
-            <li>鏡頭與圖片網址</li>
-            <li>視覺情境一鍵分析</li>
-            <li>Gemma 圖像理解</li>
+            <li>圖片上傳</li>
+            <li>攝影機擷取</li>
+            <li>Gemma 視覺理解</li>
           </ul>
           <span class="jump">前往視覺展示</span>
-        </a>
-
-        <a class="page-card" href="/yolo" target="_blank" rel="noopener noreferrer">
-          <p class="card-kicker">Detection</p>
-          <h2>YOLO 偵測展示</h2>
-          <p>適合展示即時標註、類別摘要、影片來源切換與 FPS 表現。</p>
-          <ul>
-            <li>YOLO11n / YOLO11x</li>
-            <li>Webcam / 影片 / 自訂來源</li>
-            <li>FPS 與偵測摘要</li>
-          </ul>
-          <span class="jump">前往 YOLO 展示</span>
         </a>
       </main>
     </div>

@@ -1,1 +1,0 @@
-"""YOLO WebUI application package."""
