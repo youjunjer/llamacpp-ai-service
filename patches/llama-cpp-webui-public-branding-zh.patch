@@ -1,0 +1,147 @@
+diff --git a/tools/server/webui/src/lib/components/app/navigation/SidebarNavigation/SidebarNavigation.svelte b/tools/server/webui/src/lib/components/app/navigation/SidebarNavigation/SidebarNavigation.svelte
+index f1d0391..a2969f2 100644
+--- a/tools/server/webui/src/lib/components/app/navigation/SidebarNavigation/SidebarNavigation.svelte
++++ b/tools/server/webui/src/lib/components/app/navigation/SidebarNavigation/SidebarNavigation.svelte
+@@ -1,9 +1,10 @@
+ <script lang="ts">
+ 	import { goto } from '$app/navigation';
+ 	import { page } from '$app/state';
+-	import { Trash2, Pencil, X } from '@lucide/svelte';
++	import { Trash2, Pencil, X, LogOut } from '@lucide/svelte';
+ 	import { Button } from '$lib/components/ui/button';
+ 	import { DialogConfirmation } from '$lib/components/app';
++	import { onMount } from 'svelte';
+ 	import SidebarNavigationActions from './SidebarNavigationActions.svelte';
+ 	import SidebarNavigationConversationItem from './SidebarNavigationConversationItem.svelte';
+ 	import { Checkbox } from '$lib/components/ui/checkbox';
+@@ -30,6 +31,7 @@
+ 	let showEditDialog = $state(false);
+ 	let selectedConversation = $state<DatabaseConversation | null>(null);
+ 	let editedName = $state('');
++	let currentUserEmail = $state('');
+ 	let selectedConversationNamePreview = $derived.by(() =>
+ 		selectedConversation ? getPreviewText(selectedConversation.name) : ''
+ 	);
+@@ -165,15 +167,51 @@
+ 	function handleStopGeneration(id: string) {
+ 		chatStore.stopGenerationForChat(id);
+ 	}
++
++	function handleLogout() {
++		window.location.assign('/oauth2/sign_out?rd=/oauth2/sign_in');
++	}
++
++	onMount(async () => {
++		try {
++			const response = await fetch('/api/history/health');
++			if (!response.ok) return;
++
++			const data = await response.json();
++			if (typeof data.user === 'string') {
++				currentUserEmail = data.user;
++			}
++		} catch (error) {
++			console.warn('[SidebarNavigation] Failed to load current user:', error);
++		}
++	});
+ </script>
+ 
+ <div class="flex h-full flex-col">
+-	<ScrollArea class="h-full flex-1">
++	<ScrollArea class="min-h-0 flex-1">
+ 		<Sidebar.Header class="gap-4 bg-sidebar/50 p-3 backdrop-blur-lg md:pt-4 md:pb-2">
+-			<div class="flex items-center justify-between">
+-				<a href="#/" onclick={handleMobileSidebarItemClick}>
+-					<h1 class="inline-flex items-center gap-1 px-2 text-xl font-semibold">{APP_NAME}</h1>
+-				</a>
++			<div class="flex items-start justify-between gap-2">
++				<div class="min-w-0 flex-1 px-2">
++					<a class="block min-w-0" href="#/" onclick={handleMobileSidebarItemClick}>
++						<h1 class="truncate text-xl font-semibold">{APP_NAME}</h1>
++					</a>
++
++					{#if currentUserEmail}
++						<p class="mt-1 truncate text-xs text-muted-foreground" title={currentUserEmail}>
++							{currentUserEmail}
++						</p>
++					{/if}
++
++					<Button
++						class="mt-2 h-8 w-fit gap-1.5 rounded-md border border-border/70 px-2.5 text-xs text-muted-foreground hover:text-foreground"
++						variant="ghost"
++						onclick={handleLogout}
++						title="登出"
++					>
++						<LogOut class="h-3.5 w-3.5" />
++						<span>登出</span>
++					</Button>
++				</div>
+ 
+ 				<Button
+ 					class="rounded-full md:hidden"
+diff --git a/tools/server/webui/src/lib/services/chat.service.ts b/tools/server/webui/src/lib/services/chat.service.ts
+index 9e5990d..f3cd763 100644
+--- a/tools/server/webui/src/lib/services/chat.service.ts
++++ b/tools/server/webui/src/lib/services/chat.service.ts
+@@ -18,6 +18,9 @@ import type { ApiChatMessageContentPart, ApiChatCompletionToolCall } from '$lib/
+ import type { DatabaseMessageExtraMcpPrompt, DatabaseMessageExtraMcpResource } from '$lib/types';
+ import { modelsStore } from '$lib/stores/models.svelte';
+ 
++const TRADITIONAL_CHINESE_SYSTEM_PROMPT =
++	'預設使用台灣繁體中文回答。除非使用者明確要求使用其他語言、翻譯、引用原文、輸出程式碼、命令、檔名、API 或專有名詞，否則回覆主體一律使用繁體中文；不得使用簡體中文。';
++
+ export class ChatService {
+ 	/**
+ 	 *
+@@ -106,6 +109,21 @@ export class ChatService {
+ 				return true;
+ 			});
+ 
++		const existingSystemMessage = normalizedMessages.find(
++			(msg) => msg.role === MessageRole.SYSTEM && typeof msg.content === 'string'
++		);
++
++		if (existingSystemMessage && typeof existingSystemMessage.content === 'string') {
++			if (!existingSystemMessage.content.includes(TRADITIONAL_CHINESE_SYSTEM_PROMPT)) {
++				existingSystemMessage.content = `${TRADITIONAL_CHINESE_SYSTEM_PROMPT}\n\n${existingSystemMessage.content}`;
++			}
++		} else {
++			normalizedMessages.unshift({
++				role: MessageRole.SYSTEM,
++				content: TRADITIONAL_CHINESE_SYSTEM_PROMPT
++			});
++		}
++
+ 		// Filter out image attachments if the model doesn't support vision
+ 		if (options.model && !modelsStore.modelSupportsVision(options.model)) {
+ 			normalizedMessages.forEach((msg) => {
+diff --git a/tools/server/webui/static/favicon.svg b/tools/server/webui/static/favicon.svg
+index a7ae136..b3704ee 100644
+--- a/tools/server/webui/static/favicon.svg
++++ b/tools/server/webui/static/favicon.svg
+@@ -1 +1,23 @@
+-<svg width="256" xmlns="http://www.w3.org/2000/svg" height="256" id="screenshot-ef94fbb0-dbab-80ed-8006-89429900edbf" viewBox="0 0 256 256" xmlns:xlink="http://www.w3.org/1999/xlink" fill="none" version="1.1"><g id="shape-ef94fbb0-dbab-80ed-8006-89429900edbf" rx="0" ry="0"><g id="shape-ef94fbb0-dbab-80ed-8006-894215755c3a"><g class="fills" id="fills-ef94fbb0-dbab-80ed-8006-894215755c3a"><rect rx="0" ry="0" x="0" y="0" transform="matrix(1.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000)" width="256" height="256" style="fill: rgb(27, 31, 32); fill-opacity: 1;"/></g></g><g id="shape-ef94fbb0-dbab-80ed-8006-89422363ef3f" rx="0" ry="0"><g id="shape-ef94fbb0-dbab-80ed-8006-89422363ef40"><g class="fills" id="fills-ef94fbb0-dbab-80ed-8006-89422363ef40"><path d="M171.66500854492188,99.5302505493164L159.79953002929688,120.62468719482422C144.15451049804688,108.58329010009766,120.9504165649414,106.8254165649414,105.3053970336914,119.7457504272461C80.0798110961914,140.57652282714844,81.8376235961914,188.7422637939453,121.1261978149414,189.00587463378906C132.11300659179688,189.00587463378906,141.42965698242188,183.8201141357422,151.44967651367188,180.39234924316406L156.72335815429688,201.3988494873047C147.84591674804688,205.52989196777344,138.79293823242188,209.7487335205078,129.03683471679688,211.06712341308594C40.08835220336914,223.1964569091797,45.18600845336914,94.78400421142578,125.6088638305664,88.10407257080078C142.48434448242188,86.69782257080078,157.33834838867188,91.09247589111328,171.75314331054688,99.5302505493164Z" class="st0" style="fill: rgb(255, 130, 54); fill-opacity: 1;"/></g></g><g id="shape-ef94fbb0-dbab-80ed-8006-89422363ef41"><g class="fills" id="fills-ef94fbb0-dbab-80ed-8006-89422363ef41"><path d="M110.2272720336914,79.31470489501953C96.6918716430664,83.35785675048828,84.1232681274414,90.8288345336914,74.6305923461914,101.28812408447266C72.8727798461914,80.01782989501953,77.6188735961914,37.03793716430664,101.2621841430664,28.6001033782959C104.7780532836914,27.36964988708496,116.8195571899414,24.293371200561523,116.4679946899414,30.533788681030273C116.1161880493164,36.77426528930664,107.7663345336914,47.49722671508789,105.7450942993164,53.29823684692383C102.2292251586914,63.49386978149414,105.4811782836914,70.52535247802734,110.3154067993164,79.40265655517578Z" class="st0" style="fill: rgb(255, 130, 54); fill-opacity: 1;"/></g></g><g id="shape-ef94fbb0-dbab-80ed-8006-89422363ef42"><g class="fills" id="fills-ef94fbb0-dbab-80ed-8006-89422363ef42"><path d="M143.62692260742188,127.65621185302734L143.62692260742188,143.47706604003906L157.68991088867188,143.47706604003906L157.68991088867188,155.7821807861328L143.62692260742188,155.7821807861328L143.62692260742188,170.7240753173828L130.44284057617188,170.7240753173828L130.44284057617188,155.7821807861328L115.5009536743164,155.7821807861328L115.5009536743164,143.47706604003906L129.12448120117188,143.47706604003906L130.44284057617188,142.15867614746094L130.44284057617188,127.65621185302734L143.62692260742188,127.65621185302734Z" class="st0" style="fill: rgb(255, 130, 54); fill-opacity: 1;"/></g></g><g id="shape-ef94fbb0-dbab-80ed-8006-89422363ef43"><g class="fills" id="fills-ef94fbb0-dbab-80ed-8006-89422363ef43"><path d="M191.96823120117188,127.65621185302734L191.96823120117188,142.15867614746094L193.28683471679688,143.47706604003906L206.91036987304688,143.47706604003906L206.91036987304688,155.7821807861328L191.96823120117188,155.7821807861328L191.96823120117188,170.7240753173828L178.78439331054688,170.7240753173828L178.78439331054688,155.7821807861328L164.72140502929688,155.7821807861328L164.72140502929688,143.47706604003906L178.78439331054688,143.47706604003906L178.78439331054688,127.65621185302734L191.96823120117188,127.65621185302734Z" class="st0" style="fill: rgb(255, 130, 54); fill-opacity: 1;"/></g></g><g id="shape-ef94fbb0-dbab-80ed-8006-89422363ef44"><g class="fills" id="fills-ef94fbb0-dbab-80ed-8006-89422363ef44"><path d="M153.20748901367188,38.092655181884766C154.96554565429688,40.72946548461914,145.03341674804688,52.06770706176758,143.45114135742188,54.96817398071289C138.88082885742188,63.581790924072266,141.95700073242188,68.50382232666016,145.38473510742188,76.67792510986328C135.45285034179688,75.18372344970703,126.2240982055664,76.41425323486328,116.3798599243164,77.55683135986328C118.5773696899414,58.659732818603516,129.21261596679688,31.1490535736084,153.20748901367188,38.092655181884766Z" class="st0" style="fill: rgb(255, 130, 54); fill-opacity: 1;"/></g></g></g></g></svg>
+\ No newline at end of file
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="llama.cpp AI service">
++  <defs>
++    <linearGradient id="bg" x1="32" y1="24" x2="224" y2="232" gradientUnits="userSpaceOnUse">
++      <stop stop-color="#111827"/>
++      <stop offset="1" stop-color="#020617"/>
++    </linearGradient>
++    <linearGradient id="edge" x1="52" y1="44" x2="204" y2="212" gradientUnits="userSpaceOnUse">
++      <stop stop-color="#38bdf8"/>
++      <stop offset="1" stop-color="#22c55e"/>
++    </linearGradient>
++  </defs>
++  <rect width="256" height="256" rx="58" fill="url(#bg)"/>
++  <path d="M76 73h104c22 0 40 18 40 40v35c0 22-18 40-40 40h-47l-37 31v-31H76c-22 0-40-18-40-40v-35c0-22 18-40 40-40Z" fill="#0f172a" stroke="url(#edge)" stroke-width="14" stroke-linejoin="round"/>
++  <path d="M82 132h92" stroke="#e5f2ff" stroke-width="14" stroke-linecap="round"/>
++  <path d="M82 161h56" stroke="#e5f2ff" stroke-width="14" stroke-linecap="round"/>
++  <circle cx="87" cy="102" r="10" fill="#38bdf8"/>
++  <circle cx="128" cy="102" r="10" fill="#22c55e"/>
++  <circle cx="169" cy="102" r="10" fill="#38bdf8"/>
++  <path d="M87 102h82" stroke="#1e293b" stroke-width="6" stroke-linecap="round"/>
++  <circle cx="87" cy="102" r="10" fill="#38bdf8"/>
++  <circle cx="128" cy="102" r="10" fill="#22c55e"/>
++  <circle cx="169" cy="102" r="10" fill="#38bdf8"/>
++</svg>
