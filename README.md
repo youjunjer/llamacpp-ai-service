@@ -21,6 +21,7 @@
 | `gemma-4-E2B-it.Q4_K_M` | 文字 + 多模態 projector | 較輕量，適合快速測試與低資源環境 |
 | `gemma-4-E4B-it-Q4_K_M` | 文字 + 多模態 projector | 平衡速度與品質 |
 | `gemma-4-12B-it-Q4_K_M` | 文字 + 多模態 projector | 已驗證 256K context，適合長文件與圖片理解 |
+| `gemma-4-12B-coder-fable5-Q4_K_M` | 文字 / coding | 12B coding / reasoning 候選模型，適合程式碼補全、除錯與演算法任務 |
 | `gemma-4-26B-A4B-it-Q4_K_M` | 文字 + 多模態 projector | 較大型候選模型，適合需要更高推理品質的任務 |
 
 ## 硬體需求
@@ -31,6 +32,7 @@
 | --- | --- |
 | E2B / E4B 測試 | NVIDIA GPU 8GB VRAM 以上，系統記憶體 16GB 以上 |
 | 12B Q4_K_M 一般使用 | NVIDIA GPU 16GB VRAM 以上，系統記憶體 32GB 以上 |
+| 12B Coder Q4_K_M | NVIDIA GPU 16GB VRAM 以上；建議先用 64K context，約需 11GB VRAM |
 | 12B Q4_K_M + 256K context | NVIDIA GPU 16GB VRAM 可載入但餘裕很小，建議 24GB VRAM 以上 |
 | 26B Q4_K_M 候選模型 | 建議 24GB VRAM 以上，或接受較慢的 CPU / 部分 offload |
 | 模型儲存空間 | 至少 40GB；若保留多個模型版本，建議 100GB 以上 |
@@ -170,6 +172,26 @@ wget -c \
   -O mmproj-google_gemma-4-26B-A4B-it-f16.gguf
 ```
 
+12B Coder / reasoning 候選模型：
+
+```bash
+cd /home/youadmin/llama-models
+
+wget -c \
+  'https://huggingface.co/yuxinlu1/gemma-4-12B-coder-fable5-composer2.5-v1-GGUF/resolve/main/gemma4-coding-Q4_K_M.gguf?download=true' \
+  -O gemma-4-12B-coder-fable5-Q4_K_M.gguf
+```
+
+這個模型是純文字 coding 模型，不需要 `mmproj`。GGUF metadata 已驗證：
+
+```text
+general.architecture = gemma4
+general.name = Gemma4 Coding Merged Fp16
+gemma4.context_length = 262144
+```
+
+實務上 16GB VRAM 建議先用 `ctx-size = 65536`，避免與 12B 256K 多模態模型一樣把 VRAM 餘裕吃滿。
+
 E2B / E4B 模型請依 `llama-models.ini` 中的檔名補齊。若只想先測 12B，可以先保留其他 preset，但不要選未下載的模型。
 
 ### 7. 驗證 GGUF metadata
@@ -218,6 +240,18 @@ python3 convert_hf_to_gguf.py /path/to/hf-model --outfile /home/youadmin/llama-m
 model = /home/youadmin/llama-models/gemma-4-12B-it-Q4_K_M.ctx262144.gguf
 mmproj = /home/youadmin/llama-models/mmproj-gemma-4-12B-it-Q8_0.gguf
 ctx-size = 262144
+cache-ram = 0
+n-predict = 4096
+parallel = 1
+cache-idle-slots = 0
+```
+
+12B Coder 範例：
+
+```ini
+[gemma-4-12B-coder-fable5-Q4_K_M]
+model = /home/youadmin/llama-models/gemma-4-12B-coder-fable5-Q4_K_M.gguf
+ctx-size = 65536
 cache-ram = 0
 n-predict = 4096
 parallel = 1
