@@ -182,7 +182,10 @@ wget -c \
   -O gemma-4-12B-coder-fable5-Q4_K_M.gguf
 ```
 
-這個模型是純文字 coding 模型，不需要 `mmproj`。GGUF metadata 已驗證：
+這個模型主要定位為 coding / reasoning 模型，但可搭配 Gemma 4 12B 的
+`mmproj-gemma-4-12B-it-Q8_0.gguf` 啟用圖片輸入。production 已驗證
+llama.cpp 能載入 vision/audio encoder，並可用圖片 API 回答影像內容。
+GGUF metadata 已驗證：
 
 ```text
 general.architecture = gemma4
@@ -251,6 +254,7 @@ cache-idle-slots = 0
 ```ini
 [gemma-4-12B-coder-fable5-Q4_K_M]
 model = /home/youadmin/llama-models/gemma-4-12B-coder-fable5-Q4_K_M.gguf
+mmproj = /home/youadmin/llama-models/mmproj-gemma-4-12B-it-Q8_0.gguf
 ctx-size = 65536
 cache-ram = 0
 n-predict = 4096
