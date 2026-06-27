@@ -1,0 +1,26 @@
+--- a/tools/server/webui/src/lib/stores/models.svelte.ts
++++ b/tools/server/webui/src/lib/stores/models.svelte.ts
+@@ -141,7 +141,7 @@
+ 			return this.buildModalities(props.modalities);
+ 		}
+ 
+-		return null;
++		return this.inferModalitiesFromRouterArgs(modelId);
+ 	}
+ 
+ 	modelSupportsVision(modelId: string): boolean {
+@@ -782,6 +782,14 @@
+ 			audio: modalities.audio ?? false,
+ 			video: modalities.video ?? false
+ 		};
++	}
++
++	private inferModalitiesFromRouterArgs(modelId: string): ModelModalities | null {
++		const routerModel = this.routerModels.find((m) => m.id === modelId);
++		const args = routerModel?.status?.args ?? [];
++		if (!args.includes('--mmproj')) return null;
++
++		return { vision: true, audio: true, video: false };
+ 	}
+ 
+ 	clear(): void {
