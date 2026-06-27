@@ -250,13 +250,13 @@ parallel = 1
 cache-idle-slots = 0
 ```
 
-12B Coder 範例：
+12B Coder 256K 範例：
 
 ```ini
 [gemma-4-12B-coder-fable5-Q4_K_M]
 model = /home/youadmin/llama-models/gemma-4-12B-coder-fable5-Q4_K_M.gguf
 mmproj = /home/youadmin/llama-models/mmproj-gemma-4-12B-it-Q8_0.gguf
-ctx-size = 65536
+ctx-size = 262144
 cache-ram = 0
 n-predict = 4096
 parallel = 1
