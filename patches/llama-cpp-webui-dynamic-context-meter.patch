@@ -1,0 +1,19 @@
+--- a/tools/server/webui/src/lib/components/app/chat/ChatMessages/ChatMessageStatistics/ChatMessageStatistics.svelte
++++ b/tools/server/webui/src/lib/components/app/chat/ChatMessages/ChatMessageStatistics/ChatMessageStatistics.svelte
+@@ -6,6 +6,7 @@
+ 	import type { ChatMessageAgenticTimings } from '$lib/types/chat';
+ 	import { formatPerformanceTime } from '$lib/utils';
+ 	import { MS_PER_SECOND, DEFAULT_PERFORMANCE_TIME } from '$lib/constants';
++	import { selectedModelContextSize } from '$lib/stores/models.svelte';
+ 	import type { Component } from 'svelte';
+ 
+ 	interface Props {
+@@ -83,7 +84,7 @@
+ 	let formattedPromptTime = $derived(
+ 		promptMs !== undefined ? formatPerformanceTime(promptMs) : undefined
+ 	);
+-	const contextSize = 131072;
++	const contextSize = $derived(selectedModelContextSize() ?? 131072);
+ 	let totalTokens = $derived((promptTokens || 0) + (predictedTokens || 0));
+ 
+ 	let hasPromptStats = $derived(
