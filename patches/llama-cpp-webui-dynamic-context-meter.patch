@@ -33,3 +33,15 @@ diff --git a/tools/server/webui/src/lib/components/app/chat/ChatMessages/ChatMes
  			/>
  
  			<ChatMessageStatisticsBadge
+diff --git a/tools/server/public/index.html b/tools/server/public/index.html
+--- a/tools/server/public/index.html
++++ b/tools/server/public/index.html
+@@ -13,9 +13,9 @@
+-		<link href="./bundle.js" rel="modulepreload">
++		<link href="./bundle.js?v=20260630ctxmeter2" rel="modulepreload">
+ 
+-		<link href="./bundle.css" rel="stylesheet">
++		<link href="./bundle.css?v=20260630ctxmeter2" rel="stylesheet">
+@@ -27,7 +27,7 @@
+-					import("./bundle.js").then((app) => {
++					import("./bundle.js?v=20260630ctxmeter2").then((app) => {
