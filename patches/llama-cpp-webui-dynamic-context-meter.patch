@@ -22,6 +22,22 @@ diff --git a/tools/server/webui/src/lib/components/app/chat/ChatMessages/ChatMes
  
  	let hasPromptStats = $derived(
  		promptTokens !== undefined &&
+@@ -225,6 +232,15 @@
+ 				value="{predictedTokens?.toLocaleString()} tokens"
+ 				tooltipLabel="Generated tokens"
+ 			/>
++
++			{#if promptTokens !== undefined}
++				<ChatMessageStatisticsBadge
++					class="bg-transparent"
++					icon={BookOpenText}
++					value={formattedPromptContextUsage}
++					tooltipLabel="Prompt tokens / available context"
++				/>
++			{/if}
+ 
+ 			<ChatMessageStatisticsBadge
+ 				class="bg-transparent"
 @@ -281,8 +288,8 @@
  			<ChatMessageStatisticsBadge
  				class="bg-transparent"
