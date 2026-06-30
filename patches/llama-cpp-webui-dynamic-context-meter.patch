@@ -45,3 +45,13 @@ diff --git a/tools/server/public/index.html b/tools/server/public/index.html
 @@ -27,7 +27,7 @@
 -					import("./bundle.js").then((app) => {
 +					import("./bundle.js?v=20260630ctxmeter2").then((app) => {
+diff --git a/tools/server/webui/src/lib/components/app/chat/ChatScreen/ChatScreen.svelte b/tools/server/webui/src/lib/components/app/chat/ChatScreen/ChatScreen.svelte
+--- a/tools/server/webui/src/lib/components/app/chat/ChatScreen/ChatScreen.svelte
++++ b/tools/server/webui/src/lib/components/app/chat/ChatScreen/ChatScreen.svelte
+@@ -374,6 +374,7 @@
+ 							}}
+ 						/>
++						<div class="h-44 shrink-0 md:h-36" aria-hidden="true"></div>
+ 					{/if}
+ 
+ 					<div
