@@ -246,7 +246,7 @@ model = /home/youadmin/llama-models/gemma-4-12B-it-Q4_K_M.ctx262144.gguf
 mmproj = /home/youadmin/llama-models/mmproj-gemma-4-12B-it-Q8_0.gguf
 ctx-size = 262144
 cache-ram = 0
-n-predict = 4096
+n-predict = 8192
 parallel = 1
 cache-idle-slots = 0
 ```
@@ -259,7 +259,7 @@ model = /home/youadmin/llama-models/gemma-4-12B-coder-fable5-Q4_K_M.gguf
 mmproj = /home/youadmin/llama-models/mmproj-gemma-4-12B-it-Q8_0.gguf
 ctx-size = 262144
 cache-ram = 0
-n-predict = 4096
+n-predict = 8192
 parallel = 1
 cache-idle-slots = 0
 ```
