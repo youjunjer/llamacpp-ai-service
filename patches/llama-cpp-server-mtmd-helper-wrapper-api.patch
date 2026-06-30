@@ -1,0 +1,12 @@
+diff --git a/tools/server/server-common.cpp b/tools/server/server-common.cpp
+--- a/tools/server/server-common.cpp
++++ b/tools/server/server-common.cpp
+@@ -716,7 +716,8 @@ server_tokens process_mtmd_prompt(mtmd_context * mctx, std::string prompt, std::
+     mtmd::bitmaps bitmaps;
+     for (auto & file : files) {
+-        mtmd::bitmap bmp(mtmd_helper_bitmap_init_from_buf(mctx, file.data(), file.size()));
++        auto wrapper = mtmd_helper_bitmap_init_from_buf(mctx, file.data(), file.size(), false);
++        mtmd::bitmap bmp(wrapper.bitmap);
+         if (!bmp.ptr) {
+             throw std::runtime_error("Failed to load image or audio file");
+         }

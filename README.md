@@ -391,7 +391,17 @@ curl http://127.0.0.1:8080/v1/models
 
 ### 出現 `unknown projector type: gemma4uv`
 
-代表 llama.cpp 版本太舊。請更新 llama.cpp 到支援 Gemma 4 unified projector 的版本，重新編譯 `llama-server`。
+代表 llama.cpp 的 `tools/mtmd` 版本太舊，或重建時沒有復原 Gemma 4 unified projector 支援。對固定在舊 commit 的部署，可只更新 `tools/mtmd` 子目錄，再重新編譯：
+
+```bash
+cd /home/youadmin/llama.cpp
+git fetch origin
+git checkout origin/master -- tools/mtmd
+git apply /home/youadmin/202604-ollama-ai-service/patches/llama-cpp-server-mtmd-helper-wrapper-api.patch
+cmake --build build-gemma4uv --target llama-server -j2
+```
+
+修復後 log 應該能看到 `projector: gemma4uv`、`projector: gemma4ua` 與 `loaded multimodal model`。
 
 ### 模型清單有模型，但載入失敗
 
